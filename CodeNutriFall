@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-
 /*===============================
 ====== Variáveis Globais ========
 =================================*/
@@ -24,14 +23,16 @@ ALLEGRO_DISPLAY *janela_inicial = NULL;
 // As nossas variáveis para imagens que irão aparecer
 ALLEGRO_BITMAP *imagem_inicial = NULL;
 ALLEGRO_BITMAP *imagem_opcoes = NULL;
-ALLEGRO_BITMAP *imagem_opcoes_off = NULL;
-ALLEGRO_BITMAP *imagem_opcoes_on = NULL;
 ALLEGRO_BITMAP *imagem_on_Melodia = NULL;
 ALLEGRO_BITMAP *imagem_off_Melodia = NULL;
 ALLEGRO_BITMAP *imagem_on_SFX = NULL;
 ALLEGRO_BITMAP *imagem_off_SFX = NULL;
-ALLEGRO_BITMAP *Tela_provosoria_on = NULL;
-ALLEGRO_BITMAP *Tela_provosoria_off= NULL;
+ALLEGRO_BITMAP *imagem_Iniciante = NULL;
+ALLEGRO_BITMAP *imagem_Normal = NULL;
+ALLEGRO_BITMAP *imagem_Desafiante = NULL;
+ALLEGRO_BITMAP *imagem_Plataforma_down = NULL;
+ALLEGRO_BITMAP *imagem_Plataforma_right = NULL;
+ALLEGRO_BITMAP *imagem_Plataforma_left = NULL;
 
 //Fila de eventos, ela vai receber as ações do "usuário/programa".
 ALLEGRO_EVENT_QUEUE *fila_eventos = NULL;
@@ -46,9 +47,12 @@ ALLEGRO_AUDIO_STREAM *musica = NULL;
 bool sair = false;
 bool sound_Melodia = true;
 bool sound_SFX = true;
+bool iniciante = true;
+bool normal = false;
+bool desafiante = false;
 
 int tecla = 0;
-//int selecionar = 0;
+int selecionar = 0;
 
 /*===============================
 ==== Inicizalização/Instalação ==
@@ -169,7 +173,7 @@ bool inicicializar_imagens()
         return false;
     }
 
-    imagem_opcoes = al_load_bitmap("Tela-Opcoes-2.0.png");
+    imagem_opcoes = al_load_bitmap("Tela_Opcoes3.0.png");
     if (!imagem_opcoes)
     {
         fprintf(stderr, "Falha ao carregar o arquivo de imagem_opcoes.\n");
@@ -209,34 +213,50 @@ bool inicicializar_imagens()
         return false;
     }
 
-    imagem_opcoes_off = al_load_bitmap("Tela-Opcoes-2.0-off.png");
-    if (!imagem_opcoes_off)
+    imagem_Iniciante = al_load_bitmap("Dificuldade_Iniciante.png");
+    if (!imagem_Iniciante)
     {
-        fprintf(stderr, "Falha ao carregar o arquivo de imagem_opcoes_off.\n");
+        fprintf(stderr, "Falha ao carregar o arquivo de imagem_Iniciante.\n");
         al_destroy_display(janela_inicial);
         return false;
     }
 
-    imagem_opcoes_on = al_load_bitmap("Tela-Opcoes-2.0-on.png");
-    if (!imagem_opcoes_on)
+    imagem_Normal = al_load_bitmap("Dificuldade_Normal.png");
+    if (!imagem_Normal)
     {
-        fprintf(stderr, "Falha ao carregar o arquivo de imagem_opcoes_on.\n");
+        fprintf(stderr, "Falha ao carregar o arquivo de imagem_Normal.\n");
         al_destroy_display(janela_inicial);
         return false;
     }
 
-    Tela_provosoria_on = al_load_bitmap("Tela-provosoria-on.png");
-    if (!Tela_provosoria_on)
+    imagem_Desafiante = al_load_bitmap("Dificuldade_Desafiante.png");
+    if (!imagem_Desafiante)
     {
-        fprintf(stderr, "Falha ao carregar o arquivo de Tela_provosoria_on.\n");
+        fprintf(stderr, "Falha ao carregar o arquivo de imagem_Desafiante\n");
         al_destroy_display(janela_inicial);
         return false;
     }
 
-    Tela_provosoria_off = al_load_bitmap("Tela-provosoria-off.png");
-    if (!Tela_provosoria_off)
+    imagem_Plataforma_down = al_load_bitmap("Plataforma_down.png");
+    if (!imagem_Plataforma_down)
     {
-        fprintf(stderr, "Falha ao carregar o arquivo de Tela_provosoria_off.\n");
+        fprintf(stderr, "Falha ao carregar o arquivo de imagem_Plataforma_down\n");
+        al_destroy_display(janela_inicial);
+        return false;
+    }
+
+    imagem_Plataforma_right = al_load_bitmap("Plataforma_right.png");
+    if (!imagem_Plataforma_down)
+    {
+        fprintf(stderr, "Falha ao carregar o arquivo de imagem_Plataforma_right\n");
+        al_destroy_display(janela_inicial);
+        return false;
+    }
+
+    imagem_Plataforma_left = al_load_bitmap("Plataforma_left.png");
+    if (!imagem_Plataforma_down)
+    {
+        fprintf(stderr, "Falha ao carregar o arquivo de imagem_Plataforma_left\n");
         al_destroy_display(janela_inicial);
         return false;
     }
@@ -278,8 +298,9 @@ void inicializar_destroy_all()
     al_destroy_bitmap(imagem_off_Melodia);
     al_destroy_bitmap(imagem_on_SFX);
     al_destroy_bitmap(imagem_off_SFX);
-    al_destroy_bitmap(Tela_provosoria_on);
-    al_destroy_bitmap(Tela_provosoria_off);
+    al_destroy_bitmap(imagem_Iniciante);
+    al_destroy_bitmap(imagem_Normal);
+    al_destroy_bitmap(imagem_Desafiante);
 
     al_destroy_audio_stream(musica);
 }
@@ -327,29 +348,23 @@ int main(void)
                 switch(evento.keyboard.keycode)
                 {
                 case ALLEGRO_KEY_ENTER:
-                    tecla = 2;
-                    break;
-                /*
-
-                FUTURAMENTE USAREMOS
-
-                //seta para cima
-                case ALLEGRO_KEY_UP:
-                    selecionar = 1;
+                    tecla = 1;
                     break;
                 //seta para baixo
                 case ALLEGRO_KEY_DOWN:
-                    selecionar = 2;
+                    selecionar = 0;
                     break;
                 //seta para esquerda
                 case ALLEGRO_KEY_LEFT:
-                    selecionar = 3;
+                    selecionar = 1;
                     break;
                 //seta para direita.
                 case ALLEGRO_KEY_RIGHT:
-                    selecionar = 4;
+                    selecionar = 2;
                     break;
-                */
+                case ALLEGRO_KEY_SPACE:
+                    tecla = 2;
+                    break;
                 }
             }
             else if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
@@ -362,10 +377,11 @@ int main(void)
             =======================*/
 
             // Concluíndo que o usuário apertou "ENTER", a criação da tela de opções será realizada.
-            if(tecla == 2)
+            if(tecla == 1)
             {
                 al_draw_bitmap(imagem_opcoes, 0, 0, 0);
 
+                //Verifica oq está acontecendo com os botões Melodia e Efeitos Sonoros.
                 if(sound_Melodia == true)
                 {
                     if (evento.type == ALLEGRO_EVENT_MOUSE_AXES || ALLEGRO_EVENT_MOUSE_WARPED)
@@ -376,8 +392,7 @@ int main(void)
                             evento.mouse.y >= 0 &&
                             evento.mouse.y <= 720)
                         {
-                            al_draw_bitmap(imagem_on_Melodia , 0, 0, 0);
-                            al_set_audio_stream_playing(musica, true);
+                            sound_Melodia = true;
                         }
                     }
 
@@ -389,12 +404,11 @@ int main(void)
                             evento.mouse.y >= 277 &&
                             evento.mouse.y <= 319)
                         {
-                            al_draw_bitmap(imagem_off_Melodia , 0, 0, 0);
-                            al_set_audio_stream_playing(musica, false);
                             sound_Melodia = false;
                         }
                     }
                 }
+
                 else if(sound_Melodia == false)
                 {
                     if (evento.type == ALLEGRO_EVENT_MOUSE_AXES || ALLEGRO_EVENT_MOUSE_WARPED)
@@ -405,20 +419,17 @@ int main(void)
                             evento.mouse.y >= 0 &&
                             evento.mouse.y <= 720)
                         {
-                            al_draw_bitmap(imagem_off_Melodia , 0, 0, 0);
-                            al_set_audio_stream_playing(musica, false);
+                            sound_Melodia = false;
                         }
                     }
                     if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
                     {
                         // Verificamos se ele está sobre a região da imagem habilitado
                         if (evento.mouse.x >= 655 &&
-                            evento.mouse.x <= 916 &&
+                            evento.mouse.x <= 960 &&
                             evento.mouse.y >= 277 &&
                             evento.mouse.y <= 319)
                         {
-                            al_draw_bitmap(imagem_on_Melodia , 0, 0, 0);
-                            al_set_audio_stream_playing(musica, true);
                             sound_Melodia = true;
                         }
                     }
@@ -434,7 +445,7 @@ int main(void)
                             evento.mouse.y >= 0 &&
                             evento.mouse.y <= 720)
                         {
-                            al_draw_bitmap(imagem_on_SFX , 0, 0, 0);
+                            sound_SFX = true;
                         }
                     }
 
@@ -446,11 +457,11 @@ int main(void)
                             evento.mouse.y >= 338 &&
                             evento.mouse.y <= 380)
                         {
-                            al_draw_bitmap(imagem_off_SFX , 0, 0, 0);
                             sound_SFX = false;
                         }
                     }
                 }
+
                 else if(sound_SFX == false)
                 {
                     if (evento.type == ALLEGRO_EVENT_MOUSE_AXES || ALLEGRO_EVENT_MOUSE_WARPED)
@@ -461,7 +472,7 @@ int main(void)
                             evento.mouse.y >= 0 &&
                             evento.mouse.y <= 720)
                         {
-                            al_draw_bitmap(imagem_off_SFX , 0, 0, 0);
+                            sound_SFX = false;
                         }
                     }
 
@@ -469,14 +480,159 @@ int main(void)
                     {
                         // Verificamos se ele está sobre a região da imagem habilitado
                         if (evento.mouse.x >= 655 &&
-                            evento.mouse.x <= 916 &&
+                            evento.mouse.x <= 960 &&
                             evento.mouse.y >= 338 &&
                             evento.mouse.y <= 380)
                         {
-                            al_draw_bitmap(imagem_on_SFX , 0, 0, 0);
                             sound_SFX = true;
                         }
                     }
+                }
+
+                //DIFICULDADE DO JOGO
+                if(iniciante == true)
+                {
+                    if (evento.type == ALLEGRO_EVENT_MOUSE_AXES|| ALLEGRO_EVENT_MOUSE_WARPED)
+                    {
+                        // Verificamos se ele está sobre a região da imagem habilitado
+                        if (evento.mouse.x >= 0 &&
+                            evento.mouse.x <= 1280 &&
+                            evento.mouse.y >= 0 &&
+                            evento.mouse.y <= 720)
+                        {
+                            iniciante = true;
+                        }
+                    }
+
+                    if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+                    {
+                        // Verificamos se ele está sobre a região da imagem habilitado
+                        if (evento.mouse.x >= 535 &&
+                            evento.mouse.x <= 750 &&
+                            evento.mouse.y >= 487 &&
+                            evento.mouse.y <= 529)
+                        {
+                            iniciante = false;
+                            normal = true;
+                        }
+                    }
+                }
+
+                else if(normal == true)
+                {
+                    if (evento.type == ALLEGRO_EVENT_MOUSE_AXES|| ALLEGRO_EVENT_MOUSE_WARPED)
+                    {
+                        // Verificamos se ele está sobre a região da imagem habilitado
+                        if (evento.mouse.x >= 0 &&
+                            evento.mouse.x <= 1280 &&
+                            evento.mouse.y >= 0 &&
+                            evento.mouse.y <= 720)
+                        {
+                            normal = true;
+                        }
+                    }
+
+                    if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+                    {
+                        // Verificamos se ele está sobre a região da imagem habilitado
+                        if (evento.mouse.x >= 554 &&
+                            evento.mouse.x <= 728 &&
+                            evento.mouse.y >= 487 &&
+                            evento.mouse.y <= 529)
+                        {
+                            normal = false;
+                            desafiante = true;
+                        }
+                    }
+                }
+
+                else if(desafiante == true)
+                {
+                    if (evento.type == ALLEGRO_EVENT_MOUSE_AXES || ALLEGRO_EVENT_MOUSE_WARPED)
+                    {
+                        // Verificamos se ele está sobre a região da imagem habilitado
+                        if (evento.mouse.x >= 0 &&
+                            evento.mouse.x <= 1280 &&
+                            evento.mouse.y >= 0 &&
+                            evento.mouse.y <= 720)
+                        {
+                            desafiante = true;
+                        }
+                    }
+
+                    if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+                    {
+                        // Verificamos se ele está sobre a região da imagem habilitado
+                        if (evento.mouse.x >= 510 &&
+                            evento.mouse.x <= 767 &&
+                            evento.mouse.y >= 487 &&
+                            evento.mouse.y <= 529)
+                        {
+                            iniciante = true;
+                            desafiante = false;
+                        }
+                    }
+                }
+
+                //Aplica oq foi captado pelo  vereficador do mouse acima.
+
+                //Música e Efeitos Sonoros
+                if(sound_Melodia == true)
+                {
+                    al_draw_bitmap(imagem_on_Melodia , 0, 0, 0);
+                    al_set_audio_stream_playing(musica, true);
+                }
+                else
+                    if(sound_Melodia == false)
+                    {
+                        al_draw_bitmap(imagem_off_Melodia , 0, 0, 0);
+                        al_set_audio_stream_playing(musica, false);
+                    }
+
+                if(sound_SFX == true)
+                {
+                    al_draw_bitmap(imagem_on_SFX , 0, 0, 0);
+                }
+                else
+                    if(sound_SFX == false)
+                    {
+                        al_draw_bitmap(imagem_off_SFX , 0, 0, 0);
+                    }
+
+                //Deficuldades
+                if(iniciante == true)
+                {
+                    al_draw_bitmap(imagem_Iniciante , 0, 0, 0);
+                }
+                else if(normal == true)
+                {
+                    al_draw_bitmap(imagem_Normal , 0, 0, 0);
+                }
+                else if(desafiante == true)
+                {
+                    al_draw_bitmap(imagem_Desafiante , 0, 0, 0);
+                }
+
+            }
+
+            ////////////////////////////////////////
+            ///////// TELA FASE 1 /////////////////
+            ///////////////////////////////////////
+            if(tecla == 2)
+            {
+                al_clear_to_color(al_map_rgb(255, 255, 255));
+
+                if(selecionar == 0)
+                {
+                    al_draw_bitmap(imagem_Plataforma_down, 0, 0, 0);
+                }
+                else if(selecionar == 1)
+                {
+                    al_draw_bitmap(imagem_Plataforma_left, 0, 0, 0);
+                }
+                else if(selecionar == 2)
+                {
+                    al_draw_bitmap(imagem_Plataforma_right, 0, 0, 0);
                 }
             }
         }
